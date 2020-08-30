@@ -5,7 +5,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_iris
 
 """
-Accuracy score function, computes raw accuaracy scores.
+### Accuracy Score: pred, act ###
+Accuracy score shows how well the model is working, its calculated by, the number of correct
+predictions divided by the total number predictions made.
 """
 def acc_score(pred, act): # accuracy score funtion
     correct = 0 # set the correct equal to 0
@@ -15,7 +17,8 @@ def acc_score(pred, act): # accuracy score funtion
             correct += 1 # add 1 to the correct
     return correct/pred_len # return the correct divded by the pred_len
 """
-Model function, loads data and computes decision trees.
+### Decicsion Tree Models: ###
+Models function loads the wanted data, and executes both the Scratch and SKlearn Decision Trees.
 """
 def models(): # models function
     iris = load_iris() # load the sklearn iris data set

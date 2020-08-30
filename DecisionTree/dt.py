@@ -2,7 +2,7 @@
 import numpy as np
 
 """
-### Decision Tree class ###
+### Decision Tree Class ###
 Decision trees are one way to display an algorithm that only contains conditional control statements,
 commonly used in operations research, specifically in decision analysis, to help identify a strategy
 most likely to reach a goal, but are also a popular tool in machine learning.
@@ -24,8 +24,8 @@ class DecisionTree(object): # create a decision tree class 'CART'
         self.build_tree() # build the tree
     """
     ### Gini Impurity: groups, class labels ###
-    Gini impurity is a measure of how often a randomly chosen element from the set would be incorrectly labeled
-    if it was randomly labeled according to the distribution of labels in the subset.
+    Gini Impurity tells us what is the probability of misclassifying an observation and is used in calculation
+    of the split, the lower the gini score the better the split is.
     """
     def gini(self, groups, class_labels): # compute gini similiarity method
         number_sample = sum([len(group) for group in groups]) # set the num_sample equal to the sum of the length of group in groups
@@ -46,14 +46,14 @@ class DecisionTree(object): # create a decision tree class 'CART'
         return gini_score # return the gini_score
     """
     ### Terminal Node: _group ###
-    Terminal nodes are the most common class in the group, these are used to make prediction later on.
+    Terminal nodes (leaf nodes) are the final nodes that do not split further.
     """
     def term_node(self, group): # terminal node method
         class_labels, count = np.unique(group[:,-1], return_counts= True) # set a class_labels count equal to the unique count of all class_labels but the last
         return class_labels[np.argmax(count)] # return the class_labels count
     """
     ### Split: index, val, data ###
-    Splitting the features into two groups based on values.
+    Splitting a node into two sub-nodes is called splitting. It happens at all nodes except leaf nodes (terminal nodes).
     """
     def split(self, index, val, data): # split method
         data_l = np.array([]).reshape(0,self.train_data.shape[1]) # set the data_l equal the reshaped train data array
@@ -68,8 +68,9 @@ class DecisionTree(object): # create a decision tree class 'CART'
 
         return data_l, data_r # return the data_l value and data_r value
     """
-    ### best_split: data ###
-    Finding the best split using the gini impurity score.
+    ### Best Split: data ###
+    Best split uses the gini score and initial split to check all the values of each attribute and calculates the cost
+    of the split to find the best possible split.
     """
     def best_split(self, data): # best split method
         class_labels = np.unique(data[:,-1]) # set the class_labels equal to all the unique values of data but the last
@@ -94,10 +95,10 @@ class DecisionTree(object): # create a decision tree class 'CART'
         result['groups'] = best_groups # set the result groups equal to the best_groups
         return result # return the result
     """
-    ### split_branch: node, depth ###
+    ### Recursive Split: node, depth ###
     Recursively split the data and check for early stop arguments to create terminal node.
     """
-    def split_branch(self, node, depth): # split branch method
+    def rec_split(self, node, depth): # split branch method
         l_node , r_node = node['groups'] # split node groups into l_node and r_node
         del(node['groups']) # deleted the node groups
 
@@ -115,25 +116,25 @@ class DecisionTree(object): # create a decision tree class 'CART'
             node['left'] = self.terminal_node(l_node) # set the left node equal to the terminal_node on the left_node
         else: # else
             node['left'] = self.best_split(l_node) # set the left node equal to the best_split on the left_node
-            self.split_branch(node['left'],depth + 1) # split_branch on the left node with depth and 1
+            self.rec_split(node['left'],depth + 1) # split_branch on the left node with depth and 1
 
         if len(r_node) <= self.min_splits: # if the length of the right is less than or equal to the min_splits
             node['right'] = self.terminal_node(r_node) # set the right node equal to the terminal_node on the right_node
         else:
             node['right'] = self.best_split(r_node) # set the right node equal to the best_split of the right_node
-            self.split_branch(node['right'],depth + 1) # split_branch on the right node with depth and 1
+            self.rec_split(node['right'],depth + 1) # split_branch on the right node with depth and 1
     """
-    ### tree_builder: ###
-    Build tree recursively with best_splt and split_branch.
+    ### Build Tree: ###
+    Build the tree starts at the root node, then uses the best split on itself recursively to construct the entire tree.
     """
     def build_tree(self): # build tree method
         self.root = self.best_split(self.train_data) # set the root equal to the best_split on the train_data
-        self.split_branch(self.root, 1) # split_branch on the root with 1
+        self.rec_split(self.root, 1) # split_branch on the root with 1
         return self.root  # return the root
     """
-    ### predict_: node, row ###
-    Recursively traverse through the trees to determine the class of unseen sample
-    data point during prediction.
+    ### Predict: node, row ###
+    Node prediction checks if the node is either a terminal value to be returned as the prediction, or if it is a dictionary
+    node containing another level to be checked.
     """
     def pred_(self, node, row): # predict method
         if row[node['index']] < node['val']: # if the row node index is less tha nthe node val
@@ -147,10 +148,7 @@ class DecisionTree(object): # create a decision tree class 'CART'
                 return self.pred_(node['right'],row) # return the _predict of the node right and row
             else: # else
                 return node['right'] # return the node right
-    """
-    ### predict: test_data ###
-    Predict the labels of the data
-    """
+
     def pred(self, test_data): # predict method
         self.pred_label = np.array([]) # set the predicted_label to an empty array
         for i in test_data: # for loop, idx in test_data
